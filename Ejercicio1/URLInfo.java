@@ -1,12 +1,3 @@
-# Introducción a esquemas de nombres, redes, clientes y servicios con Java
-## Sebastian Galvis Briceño
-
-## Ejercicio 1
-El objetivo es escribir un programa en el cual usted cree un objeto URL e imprima en
-pantalla cada uno de los datos que retornan los 8 metodos de la seccion anterior.
-### Desarrollo:
-De acuerdo a la información proporcionada, la implementación fue la siguiente clase:
-``` java
 import java.net.*;
 
 public class URLInfo {
@@ -28,9 +19,3 @@ public class URLInfo {
         }
     }
 }
-```
-
-### Resultado:
-![img.png](Ejercicio1/img/Resultado1.png)
-
-## Ejercicio 2
