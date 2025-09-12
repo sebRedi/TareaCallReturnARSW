@@ -57,15 +57,12 @@ public class MiniBrowser {
         String urlString = scanner.nextLine();
 
         try {
-            // Creamos el objeto URL
             URL url = new URL(urlString);
 
-            // Abrimos un flujo de lectura desde la URL
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(url.openStream())
             );
 
-            // Creamos un archivo de salida
             BufferedWriter writer = new BufferedWriter(
                     new FileWriter("resultado.html")
             );
@@ -73,10 +70,9 @@ public class MiniBrowser {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 writer.write(inputLine);
-                writer.newLine(); // Agrega salto de línea
+                writer.newLine(); 
             }
 
-            // Cerramos los flujos
             reader.close();
             writer.close();
 
@@ -93,3 +89,16 @@ public class MiniBrowser {
 ```
 
 ### Resultado:
+![img.png](Ejercicio2/img/Resultado2.png)
+![img.png](Ejercicio2/img/Resultado2.1.png)
+
+## Ejercicio 3
+Escribir un servidor que reciba un número y responda el cuadrado de este número.
+
+### Desarrollo:
+
+### Resultado:
+1. Corremos Server.java:
+![img.png](Ejercicio3/img/server1.png)
+2. Corremos Client.java:
+![img.png](Ejercicio3/img/Client1.png)

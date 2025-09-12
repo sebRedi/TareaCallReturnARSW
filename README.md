@@ -40,7 +40,7 @@ public class URLInfo {
 ```
 
 ### Resultado:
-![img.png](Ejercicio1/img/Resultado1.png)
+![img.png](Ejercicio1/img/Result.png)
 
 ## Ejercicio 2
 Escribir una aplicacion browser que pregunte una direccion URL al usuario y que lea datos de esa direccion y que los almacene en un archivo con el nombre
@@ -57,15 +57,12 @@ public class MiniBrowser {
         String urlString = scanner.nextLine();
 
         try {
-            // Creamos el objeto URL
             URL url = new URL(urlString);
 
-            // Abrimos un flujo de lectura desde la URL
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(url.openStream())
             );
 
-            // Creamos un archivo de salida
             BufferedWriter writer = new BufferedWriter(
                     new FileWriter("resultado.html")
             );
@@ -73,10 +70,9 @@ public class MiniBrowser {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 writer.write(inputLine);
-                writer.newLine(); // Agrega salto de línea
+                writer.newLine(); 
             }
 
-            // Cerramos los flujos
             reader.close();
             writer.close();
 
@@ -97,3 +93,83 @@ public class MiniBrowser {
 ![img.png](Ejercicio2/img/Resultado2.1.png)
 
 ## Ejercicio 3
+Escribir un servidor que reciba un número y responda el cuadrado de este número.
+
+### Desarrollo:
+Se ha realizado la siguiente implementación:
+1. Servidor:
+``` java
+public class Server {
+    public static void main(String[] args) {
+        int port = 35000;
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Servidor iniciado en el puerto " + port);
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Cliente conectado desde " + clientSocket.getInetAddress());
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+                String inputLine = in.readLine();
+                System.out.println("Número recibido: " + inputLine);
+
+                try {
+                    int numero = Integer.parseInt(inputLine);
+                    int cuadrado = numero * numero;
+
+                    out.println("Respuesta: " + cuadrado);
+                } catch (NumberFormatException e) {
+                    out.println("Error: el valor recibido no es un número válido.");
+                }
+
+                clientSocket.close();
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error en el servidor: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+```
+2. Cliente:
+``` java
+public class Client {
+    public static void main(String[] args) {
+        String host = "127.0.0.1";
+        int port = 35000;
+
+        try (
+                Socket socket = new Socket(host, port);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                Scanner scanner = new Scanner(System.in);
+        ) {
+            System.out.print("Ingrese un número: ");
+            String numero = scanner.nextLine();
+
+            out.println(numero);
+
+            String respuesta = in.readLine();
+            System.out.println("Respuesta del servidor: " + respuesta);
+
+        } catch (UnknownHostException e) {
+            System.err.println("No se conoce el host: " + host);
+        } catch (IOException e) {
+            System.err.println("Error de conexión con el servidor: " + e.getMessage());
+        }
+    }
+}
+```
+
+### Resultado:
+1. Corremos Server.java:
+![img.png](Ejercicio3/img/server1.png)
+2. Corremos Client.java en otra terminal:
+![img.png](Ejercicio3/img/Client1.png)
+
+## Ejercicio 4

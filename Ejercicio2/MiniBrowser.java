@@ -12,15 +12,12 @@ public class MiniBrowser {
         String urlString = scanner.nextLine();
 
         try {
-            // Creamos el objeto URL
             URL url = new URL(urlString);
 
-            // Abrimos un flujo de lectura desde la URL
             BufferedReader reader = new BufferedReader(
                     new InputStreamReader(url.openStream())
             );
 
-            // Creamos un archivo de salida
             BufferedWriter writer = new BufferedWriter(
                     new FileWriter("Ejercicio2/resultado.html")
             );
@@ -28,10 +25,9 @@ public class MiniBrowser {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 writer.write(inputLine);
-                writer.newLine(); // Agrega salto de línea
+                writer.newLine();
             }
 
-            // Cerramos los flujos
             reader.close();
             writer.close();
 
