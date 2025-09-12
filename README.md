@@ -173,3 +173,125 @@ public class Client {
 ![img.png](Ejercicio3/img/Client1.png)
 
 ## Ejercicio 4
+Escribir un servidor que pueda recibir un número y responda con una operación sobre este número. Este servidor puede recibir un mensaje que empiece por "fun:", si recibe este mensaje cambia la operación a la especificada. El servidor debe responder las funciones seno, coseno y tangente. Por defecto debe empezar calculando el coseno. Por ejemplo, si el primer numero que recibe es 0, debe responder 1, si despues recibe 2 debe responder 0, si luego recibe "fun:sin" debe cambiar la operacion actual a seno, es decir a a partir de ese momento debe calcular senos. Si enseguida recibe 0 debe responder 0.
+
+### Desarrolllo:
+La implementación seguida fue la siguiente:
+
+1. Servidor:
+``` java
+public class Server {
+    public static void main(String[] args) {
+        int port = 35000;
+        String currentFunction = "cos";
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Servidor de funciones iniciado en el puerto " + port);
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    System.out.println("Mensaje recibido: " + inputLine);
+
+                    if (inputLine.startsWith("fun:")) {
+                        String func = inputLine.substring(4).trim();
+                        if (func.equals("sin") || func.equals("cos") || func.equals("tan")) {
+                            currentFunction = func;
+                            out.println("Función cambiada a: " + currentFunction);
+                        } else {
+                            out.println("Función no reconocida. Use sin, cos o tan.");
+                        }
+                    } else {
+                        try {
+                            double numero = Double.parseDouble(inputLine);
+                            double resultado;
+
+                            switch (currentFunction) {
+                                case "sin":
+                                    resultado = Math.sin(numero);
+                                    break;
+                                case "cos":
+                                    resultado = Math.cos(numero);
+                                    break;
+                                case "tan":
+                                    resultado = Math.tan(numero);
+                                    break;
+                                default:
+                                    resultado = Double.NaN;
+                            }
+                            out.println("Respuesta: " + resultado);
+                        } catch (NumberFormatException e) {
+                            out.println("Error: entrada no válida");
+                        }
+                    }
+                }
+                clientSocket.close();
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error en el servidor: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+2. Cliente
+``` java
+public class Client {
+    public static void main(String[] args) {
+        String host = "127.0.0.1"; // Servidor local
+        int port = 35000;
+
+        try (
+                Socket socket = new Socket(host, port);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                Scanner scanner = new Scanner(System.in);
+        ) {
+            System.out.println("Conectado al servidor de funciones.");
+            System.out.println("Puede enviar números o cambiar función con 'fun:sin', 'fun:cos', 'fun:tan'.");
+
+            while (true) {
+                System.out.print("> ");
+                String mensaje = scanner.nextLine();
+                out.println(mensaje);
+
+                String respuesta = in.readLine();
+                if (respuesta == null) break; // Servidor cerró conexión
+                System.out.println(respuesta);
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error de conexión: " + e.getMessage());
+        }
+    }
+}
+```
+
+### Resultado:
+Servidor:
+![img.png](Ejercicio4/img/server.png)
+Cliente:
+![img.png](Ejercicio4/img/client.png)
+
+
+## Ejercicio 5
+
+### Desarrollo:
+
+### Resultado:
+
+
+## Ejercicio 6
+
+### Desarrollo:
+
+### Resultado:
