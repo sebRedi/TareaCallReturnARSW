@@ -1,3 +1,5 @@
+package Ejercicio1;
+
 import java.net.*;
 
 public class URLInfo {

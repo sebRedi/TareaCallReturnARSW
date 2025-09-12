@@ -93,7 +93,3 @@ public class MiniBrowser {
 ```
 
 ### Resultado:
-![img.png](Ejercicio2/img/Resultado2.png)
-![img.png](Ejercicio2/img/Resultado2.1.png)
-
-## Ejercicio 3
