@@ -535,9 +535,3 @@ Cliente:
 
 ### Resultado:
 
-
-## Ejercicio 9
-
-### Desarrollo:
-
-### Resultado:
