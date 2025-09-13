@@ -530,7 +530,7 @@ Cliente:
 ![img.png](Ejercicio7/img/clientDef.png)
 
 ## Ejercicio 8
-
+CHAT: Utilizando RMI, escribir un aplicativo que pueda conectarse a otro aplicativo del mismo tipo en un servidor remoto para comenzar un chat. El aplicativo debe solicitar una dirección IP y un puerto antes de conectarse con el cliente que se desea. Igualmente, debe solicitar un puerto antes de iniciar para que publique el objeto que recibe los llamados remotos en dicho puerto.
 ### Desarrollo:
 
 ### Resultado:
