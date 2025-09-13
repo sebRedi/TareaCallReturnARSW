@@ -284,13 +284,259 @@ Cliente:
 
 
 ## Ejercicio 5
+Implementar el código 4 del archivo y acceder a él desde el navegador
+### Desarrollo:
+``` java
+import java.net.*;
+import java.io.*;
+
+public class HttpServer {
+
+    public static void main(String[] args) throws IOException {
+
+        ServerSocket serverSocket = null;
+        try{
+            serverSocket = new ServerSocket(35000);
+        } catch(IOException e){
+            System.out.println("Could not listen on port: 35000");
+            System.exit(1);
+        }
+
+        Socket clientSocket = null;
+        try {
+            System.out.println("Listo para recibir ...");
+            clientSocket = serverSocket.accept();
+        } catch(IOException e){
+            System.out.println("Accept failed.");
+            System.exit(1);
+        }
+
+        PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(
+                        clientSocket.getInputStream()));
+        String inputLine, outputLine;
+
+        while ((inputLine = in.readLine()) != null) {
+            System.out.println("Received: " + inputLine);
+            if (!in.ready()) {
+                break;
+            }
+        }
+
+        outputLine = "<!DOCTYPE html>"
+                + "<html>"
+                + "<head>"
+                + "<meta charset=\"UTF-8\">"
+                + "<title>Title of the document</title>"
+                + "</head>"
+                + "<body>"
+                + "My Web Site"
+                + "</body>"
+                + "</html>" + inputLine;
+        out.println(outputLine);
+
+        out.close();
+        in.close();
+        clientSocket.close();
+        serverSocket.close();
+    }
+}
+```
+
+### Resultado:
+Al acceder a http://localhost:35000/, se muestra lo siguiente en la consola:
+![img.png](Ejercicio5/img/result.png)
+
+## Ejercicio 6
+Escribir un servidor web que soporte multiples solicitudes seguidas (no concurrentes). El servidor debe retornar todos los archivos solicitados, incluyendo páginas html e imagenes.
+### Desarrollo:
+La solución implementada fue la siguiente:
+``` java
+public class WebServer {
+    public static void main(String[] args) {
+        int port = 35000;
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Servidor web iniciado en http://localhost:" + port);
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Cliente conectado: " + clientSocket.getInetAddress());
+
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(clientSocket.getInputStream()));
+                OutputStream out = clientSocket.getOutputStream();
+
+                String requestLine = in.readLine();
+                if (requestLine == null) {
+                    clientSocket.close();
+                    continue;
+                }
+
+                System.out.println("Solicitud: " + requestLine);
+
+                String[] parts = requestLine.split(" ");
+                if (parts.length < 2) {
+                    clientSocket.close();
+                    continue;
+                }
+
+                String path = parts[1];
+                if (path.equals("/")) {
+                    path = "/index.html";
+                }
+
+                File file = new File("." + path);
+
+                if (file.exists() && !file.isDirectory()) {
+                    String contentType = Files.probeContentType(file.toPath());
+                    if (contentType == null) {
+                        contentType = "application/octet-stream";
+                    }
+
+                    byte[] fileData = Files.readAllBytes(file.toPath());
+                    String header = "HTTP/1.1 200 OK\r\n" +
+                            "Content-Type: " + contentType + "\r\n" +
+                            "Content-Length: " + fileData.length + "\r\n" +
+                            "\r\n";
+
+                    out.write(header.getBytes());
+                    out.write(fileData);
+
+                } else {
+                    String errorMessage = "<h1>404 - Not Found</h1>";
+                    String header = "HTTP/1.1 404 Not Found\r\n" +
+                            "Content-Type: text/html\r\n" +
+                            "Content-Length: " + errorMessage.length() + "\r\n" +
+                            "\r\n";
+                    out.write(header.getBytes());
+                    out.write(errorMessage.getBytes());
+                }
+
+                out.flush();
+                clientSocket.close();
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error en el servidor: " + e.getMessage());
+        }
+    }
+}
+```
+### Resultado:
+Podemos apreciar que, tal y como el enunciado lo pide, el servidor acepta múltiples solicitudes seguidas una tras otra, sin importar cuantas sean (No confundir con concurrentes):
+
+Servidor:
+![img.png](Ejercicio6/img/Console.png)
+Navegador web:
+![img.png](Ejercicio6/img/result.png)
+
+## Ejercicio 7
+Utilizando Datagramas escribir un programa que se conecte a un servidor que responde la hora actual en el servidor. El programa debe actualizar la hora cada 5 segundos según los datos del servidor. Si una hora no es recibida debe mantener la hora que tena. Para la prueba se apagará el servidor y después de unos segundos se reactivará. El cliente debe seguir funcionando y actualizarse cuando el servidor esté nuevamente funcionando.
+### Desarrollo:
+La implementación a seguir fue la siguiente:
+
+Servidor:
+``` java
+public class UDPServer {
+
+    public static void main(String[] args) {
+        int puerto = 9999;
+
+        try {
+            DatagramSocket socket = new DatagramSocket(puerto);
+            System.out.println("Servidor UDP iniciado en el puerto " + puerto);
+
+            byte[] buffer = new byte[1024];
+
+            while (true) {
+                DatagramPacket peticion = new DatagramPacket(buffer, buffer.length);
+                socket.receive(peticion);
+
+                String mensaje = new String(peticion.getData(), 0, peticion.getLength());
+                System.out.println("Mensaje recibido: " + mensaje);
+
+                if (mensaje.equalsIgnoreCase("hora")) {
+                    String hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+
+                    InetAddress direccion = peticion.getAddress();
+                    int puertoCliente = peticion.getPort();
+
+                    byte[] respuesta = hora.getBytes();
+                    DatagramPacket paqueteRespuesta = new DatagramPacket(
+                            respuesta, respuesta.length, direccion, puertoCliente);
+
+                    socket.send(paqueteRespuesta);
+                    System.out.println("Hora enviada: " + hora);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error en el servidor: " + e.getMessage());
+        }
+    }
+}
+```
+
+Cliente:
+``` java
+public class UDPClient {
+
+    public static void main(String[] args) {
+        String host = "127.0.0.1";
+        int puerto = 9999;
+        String horaActual = "No disponible";
+
+        try {
+            DatagramSocket socket = new DatagramSocket();
+            socket.setSoTimeout(3000);
+
+            while (true) {
+                try {
+                    String mensaje = "hora";
+                    byte[] buffer = mensaje.getBytes();
+
+                    InetAddress direccion = InetAddress.getByName(host);
+                    DatagramPacket peticion = new DatagramPacket(buffer, buffer.length, direccion, puerto);
+                    socket.send(peticion);
+
+                    byte[] bufferRespuesta = new byte[1024];
+                    DatagramPacket respuesta = new DatagramPacket(bufferRespuesta, bufferRespuesta.length);
+                    socket.receive(respuesta);
+
+                    horaActual = new String(respuesta.getData(), 0, respuesta.getLength());
+                    System.out.println("Hora recibida del servidor: " + horaActual);
+
+                } catch (java.net.SocketTimeoutException e) {
+                    System.out.println("Servidor no respondió. Manteniendo: " + horaActual);
+                }
+
+                // Esperar 5 segundos antes de la siguiente consulta
+                Thread.sleep(5000);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error en el cliente: " + e.getMessage());
+        }
+    }
+}
+```
+### Resultado:
+Servidor:
+![img.png](Ejercicio7/img/server.png)
+Cliente:
+![img.png](Ejercicio7/img/client.png)
+![img.png](Ejercicio7/img/clientwithoutserver.png)
+![img.png](Ejercicio7/img/clientDef.png)
+
+## Ejercicio 8
 
 ### Desarrollo:
 
 ### Resultado:
 
 
-## Ejercicio 6
+## Ejercicio 9
 
 ### Desarrollo:
 
