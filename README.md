@@ -532,6 +532,95 @@ Cliente:
 ## Ejercicio 8
 CHAT: Utilizando RMI, escribir un aplicativo que pueda conectarse a otro aplicativo del mismo tipo en un servidor remoto para comenzar un chat. El aplicativo debe solicitar una dirección IP y un puerto antes de conectarse con el cliente que se desea. Igualmente, debe solicitar un puerto antes de iniciar para que publique el objeto que recibe los llamados remotos en dicho puerto.
 ### Desarrollo:
+Empezamos por crear la interfaz que extienda Remote como se muestra en el archivo:
+``` java
+public interface ChatInterface extends Remote {
+    void receiveMessage(String message) throws RemoteException;
+}
+```
+Posteriormente, implementamos dicha interfaz
+``` java
+public class ChatImpl extends UnicastRemoteObject implements ChatInterface {
 
+    private String nombre;
+
+    public ChatImpl(String nombre) throws RemoteException {
+        super();
+        this.nombre = nombre;
+    }
+
+    @Override
+    public void receiveMessage(String message) throws RemoteException {
+        System.out.println(message);
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+}
+```
+Y finalizamos creando la aplicación que permitirá chatear:
+``` java
+public class ChatApp {
+
+    public static void main(String[] args) {
+        try {
+            Scanner sc = new Scanner(System.in);
+
+            System.out.print("Ingrese su nombre: ");
+            String nombre = sc.nextLine();
+
+            System.out.print("Ingrese el puerto en el que desea escuchar: ");
+            int puertoLocal = sc.nextInt();
+            sc.nextLine();
+
+            ChatImpl chatLocal = new ChatImpl(nombre);
+
+            Registry registryLocal = LocateRegistry.createRegistry(puertoLocal);
+            registryLocal.rebind("ChatService", chatLocal);
+
+            System.out.println("Servidor de chat iniciado en el puerto " + puertoLocal);
+
+            System.out.print("¿Desea conectarse a otro chat? (s/n): ");
+            String opcion = sc.nextLine();
+
+            ChatInterface chatRemoto = null;
+
+            if (opcion.equalsIgnoreCase("s")) {
+                System.out.print("Ingrese la IP del otro servidor: ");
+                String ip = sc.nextLine();
+
+                System.out.print("Ingrese el puerto del otro servidor: ");
+                int puertoRemoto = sc.nextInt();
+                sc.nextLine();
+
+                Registry registryRemoto = LocateRegistry.getRegistry(ip, puertoRemoto);
+                chatRemoto = (ChatInterface) registryRemoto.lookup("ChatService");
+
+                System.out.println("Conectado con el servidor remoto en " + ip + ":" + puertoRemoto);
+            }
+
+            System.out.println("Escriba mensajes para enviar (\"salir\" para terminar):");
+
+            while (true) {
+                String mensaje = sc.nextLine();
+                if (mensaje.equalsIgnoreCase("salir")) break;
+
+                if (chatRemoto != null) {
+                    chatRemoto.receiveMessage(nombre + ": " + mensaje);
+                }
+                System.out.println("Yo: " + mensaje);
+            }
+
+            System.out.println("Chat finalizado.");
+
+        } catch (Exception e) {
+            System.err.println("Error en ChatApp: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+```
 ### Resultado:
-
+![img.png](Ejercicio8/img/chat1.png)
+![img.png](Ejercicio8/img/chat2.png)
